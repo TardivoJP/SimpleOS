@@ -11,3 +11,11 @@
 | Rufus | https://rufus.ie/en/ |
 | FergoRaw | https://www.fergonez.net/softwares/fraw |
 | VirtualBox | https://www.virtualbox.org/wiki/Download_Old_Builds_5_2 |
+
+## Desenvolvimento
+
+* Download da ferramenta FergoRaw
+* Download do arquivo mscomctl pacote de Visual Basic
+* Execução do comando "regsvr32 mscomctl.ocx" no CMD
+* Instalação do Ascentive Library Files
+* Execução do FergoRaw
