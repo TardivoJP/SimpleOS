@@ -1,8 +1,15 @@
 # SimpleOS
 
+![Proverb](https://i.imgur.com/odnJTIh.jpeg)
+
+> Se não queres que ninguém saiba, não o faças.
+> 
+> Provérbio chinês
+
 ## Objetivo
- Criar um sistema operacional simples para aprender e compreender melhor o funcionamento de um SO, seguindo o projeto do KiddieOS.Community na playlist: https://www.youtube.com/watch?v=Jws7BHrts6g&list=PLsoiO2Be-2z8BfsSkspJfDiuKeC9-LSca&index=1
- 
+ Criar um sistema operacional simples para aprender e compreender melhor o funcionamento de um SO, seguindo o projeto do [KiddieOS.Community.](https://www.youtube.com/watch?v=Jws7BHrts6g&list=PLsoiO2Be-2z8BfsSkspJfDiuKeC9-LSca&index=1)
+
+
 ## Ferramentas Utilizadas
 
 | Ferramenta | Link |
@@ -12,58 +19,115 @@
 | FergoRaw | https://www.fergonez.net/softwares/fraw |
 | VirtualBox | https://www.virtualbox.org/wiki/Download_Old_Builds_5_2 |
 
-## Desenvolvimento
-### 1 - Criando o "Hello world!"
+## Variáveis do Sistema
 
-* Criando arquivo "boot.asm" na linguagem x86 assembly com algumas intruções peculiares:
-	* BITS 16: Como trata-se de um SO simples, esse comando estipula que o assembler gere código para um processador 16-bits.
-	* ORG 0x7C00: Aqui especificamos o ponto de origem do código, que é o endereço de memória 0x7C00. É aqui que o BIOS carrega o código de inicialização.
-	* call HelloWorld e call JumpLine: São as chamadas das sub-rotinas.
-	* sub-rotina HelloWorld: Esta sub-rotina imprime os caracteres "Hello, world!" para a tela usando interrupções do BIOS (int 10h). Ela carrega cada caractere no registrador AL e então chama a interrupção 0x10 com AH=0x0E.
-	* sub-rotina JumpLine: Esta sub-rotina move o cursor para a próxima linha imprimindo um caractere de nova linha (0ah) seguido por um retorno carriage (0dh).
-	* times 519 - ($-$$) db 0: Esta diretiva preenche o código para garantir que ele tenha exatamente 512 bytes (o tamanho de um setor de inicialização), terminando no byte 0x1FE com o número 0xAA55 (dw 0xAA55).
+Primeiramente, devemos configurar o ambiente de desenvolvimento do computador, estabelecendo as variáveis `PATH` necessária para os softwares descritos acima.
 
-* Configuramos as PATH variables do windows corretamente para a VirtualBox e o NASM pelo painel de controle.
-* Utilizamos o command prompt do windows na mesma pasta do arquivo "boot.asm" e executamos esta linha para gerar o arquivo binário:
+1. Pesquise por variáveis de sistema no menu iniciar.
 
-```sh
-nasm -f bin boot.asm -o boot.bin
-```
+![Pesquisa](https://i.imgur.com/ZmfcWaA.png)
 
-* Utilizamos o command prompt do windows na mesma pasta do arquivo "boot.bin" e executamos esta linha para gerar o arquivo de imagem:
+2. Selecione variáveis de ambiente.
 
-```sh
-VBoxManage convertfromraw boot.bin boot.img --format raw
-```
+![SystemProps](https://i.imgur.com/RW6MQ99.png)
 
-* Abrimos o VirtualBox e criamos uma máquina virtual extremamente simples, sem ISO e com o tipo "Other/Uknown"
-* Após criada, vamos nas configurações da máquina virtual:
-	* Na aba "System" e "Motherboard" verificamos que a boot order apresenta "Floppy" no início da lista.
-	* Na aba "Storage" e "Storage Devices" vamos na parte inferior do menu e selecionamos "Add controller"
-	* Selecionamos "Floppy I82078"
-	* Selecionamos nosso controller recém criado e selecionamos "Add floppy drive."
-	* Selecionamos o nosso boot.img
-* Finalmente podemos iniciar a máquina virtual e verificar o "Hello world!" imprimido na tela.
+3. Selecione a variável `PATH` e clique no botão de editar.
 
-### 1.1 - Solução de problemas do tópico anterior
+![EnviromentVars](https://i.imgur.com/F5EIOTf.png)
 
-* Caso o comando VBoxManage tenha algum erro na criação do arquivo de imagem, verifique o tamanho do boot.bin, ele deve ter algum múltiplo de 512 bytes de tamanho.
-	* A razão para o requisito específico de tamanho de arquivo, especialmente no contexto de setores de inicialização e imagens de disco, está na forma como os dispositivos de armazenamento e sistemas de arquivos funcionam.
-	* Na maioria dos sistemas de armazenamento, os dados são organizados em unidades de tamanho fixo chamadas setores. Um setor normalmente tem 512 bytes de tamanho. Ao criar um setor de inicialização ou uma imagem de disco, ele precisa respeitar o tamanho do setor para compatibilidade com a mídia de armazenamento e o sistema de arquivos.
-	* Quando um computador é inicializado, o firmware BIOS ou UEFI lê o setor de inicialização do dispositivo inicializável (como um disquete, disco rígido ou unidade USB). Ele espera que o setor de inicialização tenha exatamente um setor de tamanho (512 bytes para a maioria dos sistemas). Se o setor de inicialização for menor ou maior que um setor, ele poderá não ser reconhecido ou executado corretamente.
-* Um truque bem simples para atingir um tamanho específico de arquivo é criar um outro com o tamanho que falta. Isso pode ser feito no command prompt do windows da seguinte forma:
+4. Clique no botão para criar uma nova variável e utilize as pastas dos executáveis `NASM` e `VirtualBox`.
 
-```sh
-fsutil file createnew [LOCAL DO ARQUIVO] [TAMANHO]
-```
+![EnviromentVars](https://i.imgur.com/8MFT2Ju.png)
 
-* Onde [LOCAL DO ARQUIVO] é o destino do arquivo, por exemplo "C:\Users\[SEU NOME]\Desktop\NovoArquivo"
-* E [TAMANHO] é o tamnho em bytes do arquivo, por exemplo 512
-* Ou seja, se o boot.bin tem 521 bytes, o próximo múltiplo de 512 é 1024, ou seja, precisamos criar um arquivo de exatamente 503 bytes tal que 1024 - 521 = 503.
-* Após isso utilizamos o seguinte comando para juntar os dois arquivos:
+## Compilação dos arquivos .asm com o NASM
 
-```sh
-copy /b boot.bin + NovoArquivo boot_incrementado.bin
-```
+Agora vamos criar um arquivo assembler.bat para automatizar o processo de geração de arquivos binários realizada pelo compilador `NASM`.
 
-* Onde "boot.bin" e "NovoArquivo" são os arquivos origem e "boot_incrementado.bin" será o resultante. Certifique-se que os arquivos e o seu command prompt estão na mesma pasta!
+		ECHO  OFF
+		cls
+
+		echo Montando o arquivo bootloader...
+		nasm.exe -f bin bootloader.asm -o Binary/bootloader.bin
+		echo Montando o arquivo kernel...
+		nasm.exe -f bin kernel.asm -o Binary/kernel.bin
+		echo Montando o arquivo window...
+		nasm.exe -f bin window.asm -o Binary/window.bin
+		pause
+
+Esses arquivos correspondem aos códigos assembly no repositório.
+
+![TerminalNASM](https://i.imgur.com/1x7GbCy.png)
+
+![binFiles](https://i.imgur.com/bdZfERw.png)
+
+## Criação de um arquivo .img com o FergoRaw
+
+Com os arquivos binários, podemos estabelecer a estrutura do disco de nossa imagem através do `FergoRaw`.
+
+Caso o `FergoRaw` tenha algum tipo de erro em sua execução, procure baixar e instalar `Ascentive Library Files`.
+
+![FergoRaw](https://i.imgur.com/nPyMDgr.png)
+
+Nota-se que todos os componentes estão no cabeçote 0, cilindro 0, o `bootloader` sempre deve estar no primeiro setor, seguido pelo arquivo `kernel` nos setores 2 e 3, e finalmente pelo `window` nos setores 4 e 5.
+
+"File to add to the raw image" significa justamente os arquivos que vamos adicionar no disco, `bootloader.bin`, `kernel.bin` e `window.bin`.
+
+Output file significa o local onde a imagem gerada será salva.
+
+## Criando uma imagem virtual com um pen drive USB físico
+
+1. Insira um pen drive USB em uma das portas do seu computador.
+
+2. Pesquise por criar e formatar partições do sistema no menu iniciar.
+
+![Disco](https://i.imgur.com/yAwrsot.png)
+
+3. Verifique qual o número do disco do seu pen drive, procure por um disco removível com a mesma capacidade dele.
+
+![Partições](https://i.imgur.com/KYehWrg.png)
+
+4. Com esse conhecimento em mãos, podemos criar um disco virtual com o seguinte comando:
+
+		VBoxManage internalcommands createrawvmdk -filename "%USERPROFILE%"\.VirtualBox\usb.vmdk -rawdisk \\.\PhysicalDrive [numero]
+
+5. Feito isso, você terá um arquivo `usb.vmdk` em `C:\Users\\[Seu usuário]\\.VirtualBox`
+
+## Formatando o pen drive com a imagem do Sistema Operacional
+
+Com o pen drive conectado e a imagem gerada pelo `FergoRaw`, agora podemos utilizar o `Rufus` para formatar o drive com ela.
+
+![Rufus](https://i.imgur.com/BdoAsp9.png)
+
+1. Em device, selecione o seu pen drive.
+
+2. Em select, busque o arquivo imagem gerado pelo `FergoRaw`.
+
+3. Quando o status estiver pronto, clique em start.
+
+## Configurando Oracle VirtualBox
+
+1. Abra o `VirtualBox`.
+
+2. Aperte `Ctrl + N` em seu teclado para criar uma nova máquina virtual.
+
+3. Escolha um nome e pasta para sua máquina, deixe sem imagem ISO, tipo escolha como outro e versão outro/desconhecido.
+
+![NewVM](https://i.imgur.com/jwyt7Rr.png)
+
+4. Deixe os valores padrões nos próximos passos.
+
+5. Quando chegar na parte de disco virutal, selecione "use an existing virtual hard disk file", clique no ícone da pasta ao lado e utilize o `usb.vmdk` gerado anteriormente.
+
+![VirtualUSB](https://i.imgur.com/cNFsP1H.png)
+
+6. Selecione a sua máquina, clique em start e aguarde a máquina inicializar.
+
+![SO](https://i.imgur.com/4bDxcaT.png)
+
+## Observações finais de sabedoria
+
+![ConfuciusQuote](https://i.imgur.com/YpsM4hx.jpeg)
+
+> A experiência é uma lanterna dependurada nas costas que apenas ilumina o caminho já percorrido.
+> 
+> Confúcio
