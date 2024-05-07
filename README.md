@@ -43,16 +43,18 @@ Primeiramente, devemos configurar o ambiente de desenvolvimento do computador, e
 
 Agora vamos criar um arquivo assembler.bat para automatizar o processo de geração de arquivos binários realizada pelo compilador `NASM`.
 
-		ECHO  OFF
-		cls
+```batch
+ECHO  OFF
+cls
 
-		echo Montando o arquivo bootloader...
-		nasm.exe -f bin bootloader.asm -o Binary/bootloader.bin
-		echo Montando o arquivo kernel...
-		nasm.exe -f bin kernel.asm -o Binary/kernel.bin
-		echo Montando o arquivo window...
-		nasm.exe -f bin window.asm -o Binary/window.bin
-		pause
+echo Montando o arquivo bootloader...
+nasm.exe -f bin bootloader.asm -o Binary/bootloader.bin
+echo Montando o arquivo kernel...
+nasm.exe -f bin kernel.asm -o Binary/kernel.bin
+echo Montando o arquivo window...
+nasm.exe -f bin window.asm -o Binary/window.bin
+pause
+```
 
 Esses arquivos correspondem aos códigos assembly no repositório.
 
